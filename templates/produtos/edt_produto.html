@@ -1,0 +1,39 @@
+{% extends 'pedidos/index.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="form-group">
+    <h1 class="h3 mb-2 text-gray-800">Adicionar Produto</h1>
+</div>
+<form method="POST" action="{% url 'edt_produto' produtos_id  %}">
+    {% csrf_token %}
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <div class="input-group input-group-joined ">
+                {% render_field form.nome_produto class="form-control" type="text" placeholder="Digte o nome do produto" %}
+            </div>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <div class="input-group input-group-joined ">
+                {% render_field form.categoria class="form-control" type="text" %}
+            </div>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-1">
+            <div class="input-group input-group-joined ">
+                {% render_field form.valor class="form-control" type="number" placeholder="Digte o valor" %}
+            </div>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <div class="input-group input-group-joined">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

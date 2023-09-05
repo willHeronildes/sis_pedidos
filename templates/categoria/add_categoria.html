@@ -1,0 +1,25 @@
+{% extends 'pedidos/index.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="form-group">
+    <h1 class="h3 mb-2 text-gray-800">Adicionar Categoria</h1>
+</div>
+<form method="POST" action="{% url 'add_categoria' %}">
+    {% csrf_token %}
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <div class="input-group input-group-joined ">
+                {% render_field form.categoria class="form-control" type="text" %}
+            </div>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <div class="input-group input-group-joined">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'pedidos/index.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="row">
+  {% for mesa in mesas %}
+    <div class="col-lg-2 col-md-6 col-sm-12 mb-4">
+     <a href="{% url 'pedido_mesa' numero_mesa=mesa.id %}" class="card bg-{% if mesa.pedido_set.exists %}danger{% else %}success{% endif %} text-white" style="text-decoration: none;">
+      <div class="card-body text-center">
+        <p class="card-text" data-id="{{ mesa.id }}">{{ mesa.numero }}</p>
+      </div>
+    </a>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

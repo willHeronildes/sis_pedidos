@@ -1,0 +1,82 @@
+{% extends 'pedidos/index.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+    <div class="row justify-content-center">
+        {% for categoria in categorias %}
+            <form method="GET">
+                <input type="submit" name="categoria" class="btn btn-primary mr-2" value="{{ categoria.categoria }}">
+            </form>
+        {% endfor %}
+    </div>
+    {% if produtos %}
+        <form method="POST" action="{% url 'realizar_pedido' numero_mesa=mesa.id %}">
+        {% csrf_token %}
+            <div class="row justify-content-center mr-10">
+                {% for produto in produtos %}
+                    <div class="col-lg-2 col-md-6 col-sm-12 mr-4">
+                        <div class="card-body text-center">
+                            <input type="checkbox" class="card-text link-produto" data-id="{{ produto.id }}" name="produtos" value="{{ produto.id }}">
+                                {{ produto.nome_produto }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <div class="input-group input-group-joined">
+                        <button type="submit" class="btn btn-primary">Realizar Pedido</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+    <table class="table mb-4">
+        <thead>
+            <tr>
+                <th scope="col">Produto</th>
+                <th scope="col">Preço</th>
+                <th scope="col">Excluir</th>
+                <th scope="col">Comandas</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-produto">
+            {% for pedido in pedidos %}
+                {% for produto in pedido.produtos.all %}
+                    <tr>
+                        <td>{{ produto.nome_produto }}</td>
+                        <td>R$ {{ produto.valor }}</td>
+                        <td><a href="{% url 'del_pedido' pedido.id %}"><i class="fas fa-trash"></i></a></td>
+                        <td><a href="{% url 'gerar_pdf_pedido_comanda' pedido_id=pedido.id %}" onclick="imprimirPedido({{ pedido.id }}); return false;"><i class="fas fa-print"></i></a></td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        function imprimirPedido(pedidoId) {
+            const url = `/gerar_pdf_pedido_comanda/${pedidoId}/`;
+            const win = window.open(url);
+            win.onload = function() {
+                win.print();
+                win.onafterprint = function() {
+                    win.close();
+                };
+            };
+        }
+    </script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+

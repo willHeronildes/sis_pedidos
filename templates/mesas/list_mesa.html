@@ -1,0 +1,40 @@
+{% extends 'pedidos/index.html' %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Mesas</h1>
+    <div class="form-group">
+        <a class="btn btn-primary" href="{% url 'add_mesa' %}">Adicionar nova mesa</a>
+    </div>
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>Número da Mesa</th>
+                        <th>Editar</th>
+                        <th>Excluir</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for mesas in mesa  %}
+                    <tr>
+                        <td>{{mesas.numero}}</td>
+                        <td><a href="{% url 'edt_mesa' mesas.id %}"><i class="fas fa-fw fa-edit"></i></a></td>
+                        <td><a href="{% url 'del_mesa' mesas.id %}"><i class="fas fa-trash"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
