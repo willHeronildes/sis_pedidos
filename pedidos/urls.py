@@ -1,7 +1,7 @@
 from django.urls import  path
 from pedidos.views import index, list_mesa, add_mesa, del_mesa, edt_mesa, list_produtos, list_categoria, \
     add_categoria, del_categoria, edt_categoria, add_produto, del_produto, edt_produto, home, pedido_mesa, \
-    realizar_pedido, del_pedido, gerar_pdf_pedido_comanda
+    realizar_pedido, del_pedido, gerar_pdf_pedido_comanda, finalizar_mesa
 
 urlpatterns = [
     path('index', index, name='index'),
@@ -19,10 +19,10 @@ urlpatterns = [
     path('edt_produto/<int:produtos_id>', edt_produto, name='edt_produto'),
     path('home', home, name='home'),
     path('pedido_mesa/<int:numero_mesa>/', pedido_mesa, name='pedido_mesa'),
-    path('realizar_pedido/<int:numero_mesa>/', realizar_pedido, name='realizar_pedido'),
-    path('del_pedido/<int:pedido_id>', del_pedido, name='del_pedido'),
+    path('realizar_pedido/<int:pedido_id>/', realizar_pedido, name='realizar_pedido'),
+    path('del_pedido/<int:produto_id>/<int:pedido_id>', del_pedido, name='del_pedido'),
+    path('finalizar_mesa/<int:pedido_id>/', finalizar_mesa, name='finalizar_mesa'),
     path('gerar_pdf_pedido_comanda/<int:pedido_id>/', gerar_pdf_pedido_comanda, name='gerar_pdf_pedido_comanda')
-
 ]
 
 

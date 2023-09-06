@@ -24,6 +24,7 @@ class Produto(models.Model):
 class Pedido(models.Model):
     mesa = models.ForeignKey(AddMesa, on_delete=models.CASCADE, null=True)
     produtos = models.ManyToManyField(Produto)
+    ativo = models.BooleanField(default=False)
 
     def __str__(self):
         produtos = self.produtos.all()

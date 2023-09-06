@@ -144,28 +144,15 @@ def home(request):
     mesas = AddMesa.objects.all()
     context = {'mesas': mesas}
     return render(request, 'pedidos/home.html', context)
-
-
 def pedido_mesa(request, numero_mesa):
-    try:
-        mesa = AddMesa.objects.get(id=numero_mesa)
-    except AddMesa.DoesNotExist:
-        # Lide com a mesa inexistente
-        return redirect('pagina_de_erro')
+    context = {}
+    pedido_ativo = Pedido.objects.get_or_create(mesa_id=numero_mesa, ativo=True)[0]
+    context['pedido_ativo'] = pedido_ativo
+    produtos_mesa = Produto.objects.filter(pedido=pedido_ativo.id)
+    context['produtos_mesa'] = produtos_mesa
 
     categorias = Categoria.objects.all()
-    pedidos = Pedido.objects.filter(mesa=mesa)  # Filtrar pedidos pela mesa
-
-    produtos_pedidos = {}  # Dicionário para armazenar produtos por pedido
-    for pedido in pedidos:
-        produtos_pedidos[pedido.id] = pedido.produtos.all()
-
-    context = {
-        'categorias': categorias,
-        'pedidos': pedidos,
-        'mesa': mesa,  # Passar a mesa para o template
-        'produtos_pedidos': produtos_pedidos,  # Passar os produtos por pedido para o template
-    }
+    context['categorias'] = categorias
 
     if request.GET.get('categoria'):
         if request.method == 'GET':
@@ -175,32 +162,33 @@ def pedido_mesa(request, numero_mesa):
 
 
 
-def realizar_pedido(request, numero_mesa):
-    try:
-        mesa = AddMesa.objects.get(id=numero_mesa)
-    except AddMesa.DoesNotExist:
-
-        return redirect('pagina_de_erro')
-
+def realizar_pedido(request, pedido_id):
+    context = {}
+    pedido_ativo = Pedido.objects.get(id=pedido_id)
     if request.method == 'POST':
         form = PedidoForm(request.POST)
         if form.is_valid():
             produtos_selecionados = form.cleaned_data['produtos']
             for produto in produtos_selecionados:
-                pedido = Pedido.objects.create(mesa=mesa)
-                pedido.produtos.add(produto)
+                pedido_ativo.produtos.add(produto)
+                pedido_ativo.save()
+    return redirect('pedido_mesa', numero_mesa=pedido_ativo.mesa.id)
 
-            return redirect('pedido_mesa', numero_mesa=mesa.id)
-    else:
-        form = PedidoForm()
+def del_pedido(request, produto_id, pedido_id):
+    pedido_ativo = Pedido.objects.get(id=pedido_id)
+    produto = Produto.objects.get(id=produto_id)
+    pedido_ativo.produtos.remove(produto)
 
-    return render(request, 'pedidos/pedido_mesa.html', {'form': form, 'mesa': mesa})
+    return redirect('pedido_mesa', numero_mesa=pedido_ativo.mesa.id)
 
-def del_pedido(request, pedido_id):
-    pedido = Pedido.objects.get(id=pedido_id)
-    pedido.delete()
 
-    return redirect('pedido_mesa', numero_mesa=pedido.mesa.id)
+
+def finalizar_mesa(request, pedido_id):
+    pedido_ativo = get_object_or_404(Pedido, id=pedido_id)
+
+    pedido_ativo.ativo = False
+    pedido_ativo.save()
+    return redirect('home')
 
 
 def gerar_pdf_pedido_comanda(request, pedido_id):
