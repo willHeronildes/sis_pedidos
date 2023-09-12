@@ -3,6 +3,7 @@
 
 {% block content %}
     <div class="row justify-content-center">
+    <p>Ativo: {{ pedido_ativo.ativo }}</p>
         {% for categoria in categorias %}
             <form method="GET">
                 <input type="submit" name="categoria" class="btn btn-primary mr-2" value="{{ categoria.categoria }}">

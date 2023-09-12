@@ -139,14 +139,10 @@ def edt_produto(request, produtos_id):
 
     return render(request, 'produtos/edt_produto.html', {"form": form, 'produtos_id': produtos_id})
 
-
-def home(request):
-    mesas = AddMesa.objects.all()
-    context = {'mesas': mesas}
-    return render(request, 'pedidos/home.html', context)
 def pedido_mesa(request, numero_mesa):
     context = {}
     pedido_ativo = Pedido.objects.get_or_create(mesa_id=numero_mesa, ativo=True)[0]
+    print(f"Pedido ativo para mesa {numero_mesa}: {pedido_ativo.ativo}")
     context['pedido_ativo'] = pedido_ativo
     produtos_mesa = Produto.objects.filter(pedido=pedido_ativo.id)
     context['produtos_mesa'] = produtos_mesa
@@ -158,7 +154,24 @@ def pedido_mesa(request, numero_mesa):
         if request.method == 'GET':
             context['produtos'] = Produto.objects.filter(categoria__categoria__icontains=request.GET.get('categoria'))
 
+    # Estou obtendo todos os ids de mesas que estão ativas
+    mesas_com_pedidos_ativos = list(Pedido.objects.filter(ativo=True).values_list('mesa__id', flat=True))
+
+    # Aqui eu armazeno em uma lista para pode acessar na view home
+    request.session['mesas_com_pedidos_ativos'] = mesas_com_pedidos_ativos
+
     return render(request, 'pedidos/pedido_mesa.html', context)
+
+
+
+def home(request):
+    mesas = AddMesa.objects.all()
+
+    # Acesso a lista de mesas ativas
+    mesas_com_pedidos_ativos = request.session.get('mesas_com_pedidos_ativos', [])
+
+    context = {'mesas': mesas, 'mesas_com_pedidos_ativos': mesas_com_pedidos_ativos}
+    return render(request, 'pedidos/home.html', context)
 
 
 
@@ -174,6 +187,14 @@ def realizar_pedido(request, pedido_id):
                 pedido_ativo.save()
     return redirect('pedido_mesa', numero_mesa=pedido_ativo.mesa.id)
 
+def finalizar_mesa(request, pedido_id):
+    pedido_ativo = get_object_or_404(Pedido, id=pedido_id)
+
+    pedido_ativo.ativo = False
+    pedido_ativo.save()
+    return redirect('home')
+
+
 def del_pedido(request, produto_id, pedido_id):
     pedido_ativo = Pedido.objects.get(id=pedido_id)
     produto = Produto.objects.get(id=produto_id)
@@ -181,14 +202,6 @@ def del_pedido(request, produto_id, pedido_id):
 
     return redirect('pedido_mesa', numero_mesa=pedido_ativo.mesa.id)
 
-
-
-def finalizar_mesa(request, pedido_id):
-    pedido_ativo = get_object_or_404(Pedido, id=pedido_id)
-
-    pedido_ativo.ativo = False
-    pedido_ativo.save()
-    return redirect('home')
 
 
 def gerar_pdf_pedido_comanda(request, pedido_id):

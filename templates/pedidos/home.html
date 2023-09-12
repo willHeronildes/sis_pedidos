@@ -2,15 +2,24 @@
 {% load widget_tweaks %}
 
 {% block content %}
-<div class="row">
-  {% for mesa in mesas %}
-    <div class="col-lg-2 col-md-6 col-sm-12 mb-4">
-     <a href="{% url 'pedido_mesa' numero_mesa=mesa.id %}" class="card bg-{% if mesa.pedido.ativo_set.exists %}danger{% else %}success{% endif %} text-white" style="text-decoration: none;">
-      <div class="card-body text-center">
-        <p class="card-text" data-id="{{ mesa.id }}">{{ mesa.numero }}</p>
-      </div>
-    </a>
+    <div class="row">
+        {% for mesa in mesas %}
+            <div class="col-lg-2 col-md-6 col-sm-12 mb-4">
+                {% if mesa.id in mesas_com_pedidos_ativos %}
+                    <a href="{% url 'pedido_mesa' numero_mesa=mesa.id %}"
+                       class="card bg-danger text-white"
+                       style="text-decoration: none;">
+                {% else %}
+                    <a href="{% url 'pedido_mesa' numero_mesa=mesa.id %}"
+                       class="card bg-success text-white"
+                       style="text-decoration: none;">
+                {% endif %}
+                    <div class="card-body text-center">
+                        <p class="card-text" data-id="{{ mesa.id }}">{{ mesa.numero }}</p>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
     </div>
-  {% endfor %}
-</div>
 {% endblock %}
+
