@@ -190,9 +190,17 @@ def realizar_pedido(request, pedido_id):
 def finalizar_mesa(request, pedido_id):
     pedido_ativo = get_object_or_404(Pedido, id=pedido_id)
 
+    # Removendo o ID da mesa da lista mesas_com_pedidos_ativos na sessão
+    mesa_id = pedido_ativo.mesa.id
+    mesas_com_pedidos_ativos = request.session.get('mesas_com_pedidos_ativos', [])
+    if mesa_id in mesas_com_pedidos_ativos:
+        mesas_com_pedidos_ativos.remove(mesa_id)
+        request.session['mesas_com_pedidos_ativos'] = mesas_com_pedidos_ativos
+
     pedido_ativo.ativo = False
     pedido_ativo.save()
     return redirect('home')
+
 
 
 def del_pedido(request, produto_id, pedido_id):
