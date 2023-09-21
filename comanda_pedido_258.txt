@@ -1,0 +1,9 @@
+Restaurante XYZ - Comanda de Cozinha
+-------------------------------------
+Item #1:
+Produto: Ceviche de Peixe
+Categoria: ENTRADAS
+
+Item #2:
+Produto: Coca-cola 350ml
+Categoria: BEBIDAS

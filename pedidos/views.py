@@ -2,10 +2,10 @@ from io import BytesIO
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
+import escpos
+from escpos.printer import Dummy
 
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Spacer
+
 
 from .forms import AddMesaForm, CategoriaForm, ProdutoForm, PedidoForm
 from .models import AddMesa, Categoria, Produto, Pedido
@@ -202,7 +202,6 @@ def finalizar_mesa(request, pedido_id):
     return redirect('home')
 
 
-
 def del_pedido(request, produto_id, pedido_id):
     pedido_ativo = Pedido.objects.get(id=pedido_id)
     produto = Produto.objects.get(id=produto_id)
@@ -212,44 +211,54 @@ def del_pedido(request, produto_id, pedido_id):
 
 
 
-def gerar_pdf_pedido_comanda(request, pedido_id):
+"""def imprimir_comanda(request, pedido_id):
+    # Recupere os dados do pedido com base no pedido_id
     pedido = Pedido.objects.get(id=pedido_id)
-
-    # Crie uma resposta HTTP com o tipo de conteúdo adequado para PDF
-    response = HttpResponse(content_type='application/pdf')
-
-    # Configurar o cabeçalho para indicar que o PDF deve ser exibido no navegador
-    response['Content-Disposition'] = 'inline; filename="seu_arquivo.pdf"'
-
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
-    elements = []
-
     itens_pedido = pedido.produtos.all()
 
-    data = [
-        ["Produto", "Categoria"],
-    ]
+    # Inicialize a impressora térmica (substitua '/dev/usb/lp0' com o caminho da sua impressora)
+    p = escpos.Serial(devfile='/dev/usb/lp0', baudrate=9600)
 
-    for produto in itens_pedido:
-        data.append([
-            produto.nome_produto,
-            produto.categoria if produto.categoria else "Sem categoria",
-        ])
+    # Configurar a impressora (opcional)
+    p.text('Restaurante XYZ - Comanda de Cozinha\n')
+    p.text('-------------------------------------\n')
 
-    table = Table(data, colWidths=[10 * cm, 5 * cm])
-    table.setStyle(TableStyle([
-        # ... (estilos da tabela)
-    ]))
-    elements.append(table)
-    elements.append(Spacer(1, 20))
+    # Imprima os itens do pedido
+    for index, produto in enumerate(itens_pedido, start=1):
+        p.text(f'Item #{index}:\n')
+        p.text(f'Produto: {produto.nome_produto}\n')
+        p.text(f'Categoria: {produto.categoria}\n')
+        p.text('\n')
 
-    doc.build(elements)
-    pdf = buffer.getvalue()
-    buffer.close()
-    response.write(pdf)
+    # Corte de papel (opcional)
+    p.cut()
+
+    return HttpResponse('Comanda impressa com sucesso!')"""
+
+def imprimir_comanda(request, pedido_id):
+    # Recupere os dados do pedido com base no pedido_id
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    itens_pedido = pedido.produtos.all()
+
+    # Crie o conteúdo do arquivo de texto
+    comanda_text = f"Comanda do Pedido #{pedido_id}\n\n"
+
+    for index, produto in enumerate(itens_pedido, start=1):
+        comanda_text += f"Item #{index}:\n"
+        comanda_text += f"Produto: {produto.nome_produto}\n"
+        comanda_text += f"Categoria: {produto.categoria}\n"
+        comanda_text += "\n"
+
+        # Crie a resposta HTTP com o tipo de conteúdo adequado para TXT
+    response = HttpResponse(comanda_text, content_type='text/plain')
+
+    # Configurar o cabeçalho para fazer o download do arquivo TXT
+    response['Content-Disposition'] = f'inline; filename="comanda_pedido_{pedido_id}.txt"'
 
     return response
+
+
+
 
 
 

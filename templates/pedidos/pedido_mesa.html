@@ -3,7 +3,6 @@
 
 {% block content %}
     <div class="row justify-content-center">
-    <p>Ativo: {{ pedido_ativo.ativo }}</p>
         {% for categoria in categorias %}
             <form method="GET">
                 <input type="submit" name="categoria" class="btn btn-primary mr-2" value="{{ categoria.categoria }}">
@@ -55,8 +54,8 @@
                 <td>{{ produto.nome_produto }}</td>
                 <td>R$ {{ produto.valor }}</td>
                 <td><a href="{% url 'del_pedido' produto.id pedido_ativo.id  %}"><i class="fas fa-trash"></i></a></td>
-                <td><a href=""
-                       onclick=""><i class="fas fa-print"></i></a></td>
+                <td><a href="{% url 'imprimir_comanda' pedido_id=pedido_ativo.id %}" class="imprimir-comanda"><i class="fas fa-print"></i></a></td>
+                <iframe id="comandaFrame" style="display: none"></iframe>
             </tr>
         {% endfor %}
         </tbody>
@@ -69,16 +68,30 @@
         </div>
     </div>
     <script>
-        function imprimirPedido(pedidoId) {
-            const url = `/gerar_pdf_pedido_comanda/${pedidoId}/`;
-            const win = window.open(url);
-            win.onload = function () {
-                win.print();
-                win.onafterprint = function () {
-                    win.close();
-                };
-            };
-        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const linksImprimir = document.querySelectorAll(".imprimir-comanda");
+
+            linksImprimir.forEach(function (link) {
+                link.addEventListener("click", function (event) {
+                    event.preventDefault();  // Impedir o comportamento padrão de seguir o link
+
+                    const url = this.getAttribute("href");  // Obter a URL do atributo href do link
+
+                    const win = window.open(url, '_blank');  // Abrir em uma nova janela
+
+                    if (win) {
+                        win.onload = function () {
+                            win.print();
+                            win.onafterprint = function () {
+                                win.close();
+                            };
+                        };
+                    } else {
+                        alert("O bloqueio de pop-up pode estar impedindo a impressão. Verifique as configurações do seu navegador.");
+                    }
+                });
+            });
+        });
     </script>
 {% endblock %}
 
