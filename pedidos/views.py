@@ -235,19 +235,19 @@ def del_pedido(request, produto_id, pedido_id):
 
     return HttpResponse('Comanda impressa com sucesso!')"""
 
-def imprimir_comanda(request, pedido_id):
+def imprimir_comanda(request, pedido_id, mesa_id):
     # Recupere os dados do pedido com base no pedido_id
     pedido = get_object_or_404(Pedido, id=pedido_id)
     itens_pedido = pedido.produtos.all()
 
     # Crie o conteúdo do arquivo de texto
-    comanda_text = f"Comanda do Pedido #{pedido_id}\n\n"
+    comanda_text = f"Comanda da Mesa #{mesa_id}\n\n"
 
     for index, produto in enumerate(itens_pedido, start=1):
         comanda_text += f"Item #{index}:\n"
         comanda_text += f"Produto: {produto.nome_produto}\n"
         comanda_text += f"Categoria: {produto.categoria}\n"
-        comanda_text += "\n"
+        comanda_text += f"-------------------------\n"
 
         # Crie a resposta HTTP com o tipo de conteúdo adequado para TXT
     response = HttpResponse(comanda_text, content_type='text/plain')

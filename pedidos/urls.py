@@ -22,7 +22,8 @@ urlpatterns = [
     path('realizar_pedido/<int:pedido_id>/', realizar_pedido, name='realizar_pedido'),
     path('del_pedido/<int:produto_id>/<int:pedido_id>', del_pedido, name='del_pedido'),
     path('finalizar_mesa/<int:pedido_id>/', finalizar_mesa, name='finalizar_mesa'),
-    path('imprimir_comanda/<int:pedido_id>/', imprimir_comanda, name='imprimir_comanda')
+    path('imprimir_comanda/<int:mesa_id>/<int:pedido_id>/', imprimir_comanda, name='imprimir_comanda')
+
 ]
 
 
