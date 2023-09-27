@@ -1,9 +1,12 @@
+from decimal import Decimal
+
 from io import BytesIO
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 import escpos
 from escpos.printer import Dummy
+from django.db.models import Sum
 
 
 
@@ -139,6 +142,8 @@ def edt_produto(request, produtos_id):
 
     return render(request, 'produtos/edt_produto.html', {"form": form, 'produtos_id': produtos_id})
 
+
+
 def pedido_mesa(request, numero_mesa):
     context = {}
     pedido_ativo = Pedido.objects.get_or_create(mesa_id=numero_mesa, ativo=True)[0]
@@ -146,6 +151,16 @@ def pedido_mesa(request, numero_mesa):
     context['pedido_ativo'] = pedido_ativo
     produtos_mesa = Produto.objects.filter(pedido=pedido_ativo.id)
     context['produtos_mesa'] = produtos_mesa
+
+    # Calcular o valor total somando os preços dos produtos
+    valor_total = sum(produto.valor for produto in produtos_mesa)
+    context['valor_total'] = valor_total
+
+    valor_percentual = valor_total * Decimal('0.1')
+    valor_final = valor_total + valor_percentual
+
+    context['valor_percentual'] = valor_percentual
+    context['valor_final'] = valor_final
 
     categorias = Categoria.objects.all()
     context['categorias'] = categorias
@@ -187,6 +202,7 @@ def realizar_pedido(request, pedido_id):
                 pedido_ativo.save()
     return redirect('pedido_mesa', numero_mesa=pedido_ativo.mesa.id)
 
+
 def finalizar_mesa(request, pedido_id):
     pedido_ativo = get_object_or_404(Pedido, id=pedido_id)
 
@@ -210,31 +226,6 @@ def del_pedido(request, produto_id, pedido_id):
     return redirect('pedido_mesa', numero_mesa=pedido_ativo.mesa.id)
 
 
-
-"""def imprimir_comanda(request, pedido_id):
-    # Recupere os dados do pedido com base no pedido_id
-    pedido = Pedido.objects.get(id=pedido_id)
-    itens_pedido = pedido.produtos.all()
-
-    # Inicialize a impressora térmica (substitua '/dev/usb/lp0' com o caminho da sua impressora)
-    p = escpos.Serial(devfile='/dev/usb/lp0', baudrate=9600)
-
-    # Configurar a impressora (opcional)
-    p.text('Restaurante XYZ - Comanda de Cozinha\n')
-    p.text('-------------------------------------\n')
-
-    # Imprima os itens do pedido
-    for index, produto in enumerate(itens_pedido, start=1):
-        p.text(f'Item #{index}:\n')
-        p.text(f'Produto: {produto.nome_produto}\n')
-        p.text(f'Categoria: {produto.categoria}\n')
-        p.text('\n')
-
-    # Corte de papel (opcional)
-    p.cut()
-
-    return HttpResponse('Comanda impressa com sucesso!')"""
-
 def imprimir_comanda(request, pedido_id, mesa_id):
     # Recupere os dados do pedido com base no pedido_id
     pedido = get_object_or_404(Pedido, id=pedido_id)
@@ -248,6 +239,8 @@ def imprimir_comanda(request, pedido_id, mesa_id):
         comanda_text += f"Produto: {produto.nome_produto}\n"
         comanda_text += f"Categoria: {produto.categoria}\n"
         comanda_text += f"-------------------------\n"
+    comanda_text += "\n"
+    comanda_text += "\x1D\x56\x00"
 
         # Crie a resposta HTTP com o tipo de conteúdo adequado para TXT
     response = HttpResponse(comanda_text, content_type='text/plain')
@@ -256,6 +249,12 @@ def imprimir_comanda(request, pedido_id, mesa_id):
     response['Content-Disposition'] = f'inline; filename="comanda_pedido_{pedido_id}.txt"'
 
     return response
+
+
+
+
+
+
 
 
 

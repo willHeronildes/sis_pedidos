@@ -41,24 +41,26 @@
             <th scope="col">Comandas</th>
         </tr>
         </thead>
-        <tfoot>
-        <tr>
-            <th scope="col"></th>
-            <th scope="col">Total</th>
-            <th scope="col">R$ {{ total_pedido }} </th>
-        </tr>
-        </tfoot>
         <tbody id="tabela-produto">
         {% for produto in produtos_mesa %}
             <tr>
                 <td>{{ produto.nome_produto }}</td>
                 <td>R$ {{ produto.valor }}</td>
                 <td><a href="{% url 'del_pedido' produto.id pedido_ativo.id  %}"><i class="fas fa-trash"></i></a></td>
-                <td><a href="{% url 'imprimir_comanda' mesa_id=pedido_ativo.mesa.id pedido_id=pedido_ativo.id %}" class="imprimir-comanda"><i class="fas fa-print"></i></a></td>
-                <iframe id="comandaFrame" style="display: none"></iframe>
+                <td><a href="{% url 'imprimir_comanda' mesa_id=pedido_ativo.mesa.id pedido_id=pedido_ativo.id  %}" class="imprimir-comanda"><i class="fas fa-print"></i></a></td>
+                <td></td>
             </tr>
         {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <th>Total {{ valor_total|floatformat:2 }}</th>
+                <th>Gorjeta Sugerida (10%) = {{ valor_percentual|floatformat:2 }}</th>
+            </tr>
+            <tr>
+                <th>Valor Final {{ valor_final|floatformat:2 }}</th>
+            </tr>
+        </tfoot>
     </table>
     <div class="row mb-2">
         <div class="col-md-6">
