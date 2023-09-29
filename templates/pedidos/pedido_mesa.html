@@ -65,7 +65,33 @@
     <div class="row mb-2">
         <div class="col-md-6">
             <div class="input-group input-group-joined ">
-                <a href="{% url 'finalizar_mesa' pedido_id=pedido_ativo.id %}"><i class="btn btn-primary">Finalizar Mesa</i></a>
+
+            </div>
+        </div>
+    </div>
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong">
+        Finalizar Mesa
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Comanda Mesa {{ produtos }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p></p>
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'finalizar_mesa' pedido_id=pedido_ativo.id %}"><i class="btn btn-primary">Finalizar Mesa</i></a>
+                    <a href="{% url 'imprimir_conta' mesa_id=pedido_ativo.mesa.id pedido_id=pedido_ativo.id  %}" class="imprimir-comanda"><i class="btn btn-primary">Imprimir conta</i></a>
+                </div>
             </div>
         </div>
     </div>

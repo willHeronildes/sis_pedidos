@@ -4,6 +4,7 @@ from io import BytesIO
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
+from datetime import datetime
 import escpos
 from escpos.printer import Dummy
 from django.db.models import Sum
@@ -250,6 +251,98 @@ def imprimir_comanda(request, pedido_id, mesa_id):
 
     return response
 
+def imprimir_conta(request, pedido_id, mesa_id):
+    # Recupere os dados do pedido com base no pedido_id
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    itens_pedido = pedido.produtos.all()
+
+    # Crie o conteúdo do arquivo de texto
+    comanda_text = f"HERONILDES RESTAURANTE LTDA"
+    comanda_text = f"Comanda da Mesa #{mesa_id}\n\n"
+
+    for index, produto in enumerate(itens_pedido, start=1):
+        comanda_text += f"Item #{index}:\n"
+        comanda_text += f"Produto: {produto.nome_produto}\n"
+        comanda_text += f"Categoria: {produto.categoria}\n"
+        comanda_text += f"-------------------------\n"
+    comanda_text += "\n"
+    comanda_text += "\x1D\x56\x00"
+
+        # Crie a resposta HTTP com o tipo de conteúdo adequado para TXT
+    response = HttpResponse(comanda_text, content_type='text/plain')
+
+    # Configurar o cabeçalho para fazer o download do arquivo TXT
+    response['Content-Disposition'] = f'inline; filename="comanda_pedido_{pedido_id}.txt"'
+
+    return response
+
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from datetime import datetime
+
+def imprimir_conta(request, pedido_id, mesa_id):
+    # Recupere os dados do pedido com base no pedido_id
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    itens_pedido = pedido.produtos.all()
+
+    # Informações do restaurante
+    restaurante_info = """
+HERONILDES RESTAURANTE LTDA
+Rodolfo Garcia, 2020 Lagoa Nova
+Natal-RN
+Telefone: 8421301913
+CNPJ: 44864862000138
+-------------------------------------------------------
+"""
+
+    # Informações do cupom fiscal
+    cupom_info = f"""
+Data: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+                    CUPOM NAO FISCAL 
+-------------------------------------------------------
+{"DESCRICAO":<30}{"Valor":<10}
+"""
+
+    # Itens do pedido
+    for index, produto in enumerate(itens_pedido, start=1):
+        cupom_info += f"{produto.nome_produto:<30} R$ {produto.valor:.2f}\n"
+
+    # Cálculos do subtotal, desconto, gorjeta e total
+    subtotal = sum(produto.valor for produto in itens_pedido)
+    desconto_cupom = Decimal('0.0')  # Adicione aqui o valor do desconto do cupom, se aplicável
+    subtotal_com_desconto = subtotal - desconto_cupom
+    gorjeta_sugerida = subtotal_com_desconto * Decimal('0.1')
+    total = subtotal_com_desconto + gorjeta_sugerida
+
+    # Adiciona informações de subtotal, desconto, gorjeta e total ao cupom
+    cupom_info += f"""
+    
+    
+    
+                            SubTotal: R$ {total:.2f}
+                            Desconto Cupom: R$ 
+                            Sub Total c/ desconto: R$ 
+                            Gorjeta Sugerida: R$ {gorjeta_sugerida:.2f}
+                            Total: R$ {total:.2f}
+"""
+
+
+    # Agradecimento
+    agradecimento = """
+Obrigado, Volte sempre!
+"""
+
+    # Combine todas as informações
+    comanda_text = restaurante_info + cupom_info + agradecimento
+
+    # Crie a resposta HTTP com o tipo de conteúdo adequado para TXT
+    response = HttpResponse(comanda_text, content_type='text/plain')
+
+    # Configurar o cabeçalho para fazer o download do arquivo TXT
+    response['Content-Disposition'] = f'inline; filename="conta_pedido_{pedido_id}.txt"'
+
+    return response
 
 
 
