@@ -56,9 +56,22 @@
             <tr>
                 <th>Total {{ valor_total|floatformat:2 }}</th>
                 <th>Gorjeta Sugerida (10%) = {{ valor_percentual|floatformat:2 }}</th>
+                <th>
+                    <form method="post" action="{% url 'pedido_mesa' numero_mesa=pedido_ativo.mesa.id %} ">
+                        {% csrf_token %}
+                        <!-- outros campos do formulário aqui -->
+
+                        <label for="id_desconto">Desconto:</label>
+                        <input type="number" name="desconto" id="id_desconto" step="0.01"
+                               placeholder="Digite o desconto">
+
+                        <input type="submit" value="Atualizar">
+                    </form>
+                </th>
             </tr>
             <tr>
-                <th>Valor Final {{ valor_final|floatformat:2 }}</th>
+                <th>Desconto: {{ pedido_ativo.desconto|floatformat:2 }}</th>
+                <th>Valor Final {{ valor_final2|floatformat:2 }}</th>
             </tr>
         </tfoot>
     </table>

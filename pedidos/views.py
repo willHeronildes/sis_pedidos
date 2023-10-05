@@ -148,7 +148,6 @@ def edt_produto(request, produtos_id):
 def pedido_mesa(request, numero_mesa):
     context = {}
     pedido_ativo = Pedido.objects.get_or_create(mesa_id=numero_mesa, ativo=True)[0]
-    print(f"Pedido ativo para mesa {numero_mesa}: {pedido_ativo.ativo}")
     context['pedido_ativo'] = pedido_ativo
     produtos_mesa = Produto.objects.filter(pedido=pedido_ativo.id)
     context['produtos_mesa'] = produtos_mesa
@@ -157,11 +156,6 @@ def pedido_mesa(request, numero_mesa):
     valor_total = sum(produto.valor for produto in produtos_mesa)
     context['valor_total'] = valor_total
 
-    valor_percentual = valor_total * Decimal('0.1')
-    valor_final = valor_total + valor_percentual
-
-    context['valor_percentual'] = valor_percentual
-    context['valor_final'] = valor_final
 
     categorias = Categoria.objects.all()
     context['categorias'] = categorias
@@ -175,6 +169,18 @@ def pedido_mesa(request, numero_mesa):
 
     # Aqui eu armazeno em uma lista para pode acessar na view home
     request.session['mesas_com_pedidos_ativos'] = mesas_com_pedidos_ativos
+
+    if request.method == 'POST':
+        desconto = Decimal(request.POST.get('desconto', 0))
+        pedido_ativo.desconto = desconto
+        pedido_ativo.save()
+
+        valor_final = valor_total - desconto
+        valor_percentual = valor_final * Decimal('0.1')
+        valor_final2 = valor_final + valor_percentual
+        context['valor_final'] = valor_final
+        context['valor_percentual'] = valor_percentual
+        context['valor_final2'] = valor_final2
 
     return render(request, 'pedidos/pedido_mesa.html', context)
 
@@ -240,16 +246,17 @@ def imprimir_comanda(request, pedido_id, mesa_id):
         comanda_text += f"Produto: {produto.nome_produto}\n"
         comanda_text += f"Categoria: {produto.categoria}\n"
         comanda_text += f"-------------------------\n"
-    comanda_text += "\n"
-    comanda_text += "\x1D\x56\x00"
 
-        # Crie a resposta HTTP com o tipo de conteúdo adequado para TXT
+    comanda_text += "\n\f"
+
+    # Crie a resposta HTTP com o tipo de conteúdo adequado para TXT
     response = HttpResponse(comanda_text, content_type='text/plain')
 
     # Configurar o cabeçalho para fazer o download do arquivo TXT
     response['Content-Disposition'] = f'inline; filename="comanda_pedido_{pedido_id}.txt"'
 
     return response
+
 
 def imprimir_conta(request, pedido_id, mesa_id):
     # Recupere os dados do pedido com base no pedido_id
@@ -276,9 +283,12 @@ def imprimir_conta(request, pedido_id, mesa_id):
 
     return response
 
+
+from decimal import Decimal
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from datetime import datetime
+
 
 def imprimir_conta(request, pedido_id, mesa_id):
     # Recupere os dados do pedido com base no pedido_id
@@ -310,23 +320,22 @@ Data: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
     # Cálculos do subtotal, desconto, gorjeta e total
     subtotal = sum(produto.valor for produto in itens_pedido)
-    desconto_cupom = Decimal('0.0')  # Adicione aqui o valor do desconto do cupom, se aplicável
+    desconto_cupom = pedido.desconto  # Adicione aqui o valor do desconto do cupom
     subtotal_com_desconto = subtotal - desconto_cupom
     gorjeta_sugerida = subtotal_com_desconto * Decimal('0.1')
     total = subtotal_com_desconto + gorjeta_sugerida
 
     # Adiciona informações de subtotal, desconto, gorjeta e total ao cupom
     cupom_info += f"""
-    
-    
-    
-                            SubTotal: R$ {total:.2f}
-                            Desconto Cupom: R$ 
-                            Sub Total c/ desconto: R$ 
+
+
+
+                            SubTotal: R$ {subtotal:.2f}
+                            Desconto Cupom: R$ {desconto_cupom:.2f}
+                            Sub Total c/ desconto: R$ {subtotal_com_desconto:.2f}
                             Gorjeta Sugerida: R$ {gorjeta_sugerida:.2f}
                             Total: R$ {total:.2f}
 """
-
 
     # Agradecimento
     agradecimento = """
@@ -343,6 +352,7 @@ Obrigado, Volte sempre!
     response['Content-Disposition'] = f'inline; filename="conta_pedido_{pedido_id}.txt"'
 
     return response
+
 
 
 
